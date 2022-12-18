@@ -39,7 +39,7 @@ def get_frictional_factor(reynold_number: float, pipe_roughness: float, is_lamin
 
 
 def calculate_head_loss(friction_factor: float, pipe_length: float, diameter: float, velocity: float):
-    head_loss = friction_factor * pipe_length / diameter * velocity ** 2 / (2 * ACCELERATION_DUE_GRAVITY)
+    head_loss = (friction_factor * pipe_length * velocity ** 2) / (diameter * 2 * ACCELERATION_DUE_GRAVITY)
     return head_loss
 
 
@@ -55,7 +55,7 @@ def calculate_pressure(density: float, head_loss: float) -> float:
 
 def calculate_coefficient_of_heat_transfer(reynold_number: float, diameter: float, prandtl_number: float,
                                            conductivity: float) -> float:
-    return 0.023 * (reynold_number ** 0.8) * prandtl_number ** 0.4 * conductivity / diameter
+    return 0.023 * (reynold_number ** 0.8) * (prandtl_number ** 0.4) * conductivity / diameter
 
 
 def get_values() -> dict:
@@ -138,7 +138,8 @@ def add_subplot_graph(axis, row: int, col: int, x: list, y: list, x_axis_label: 
 if __name__ == '__main__':
     # Run some code
 
-    fluids = ['castor_oil', 'linseed oil', 'sea water', 'aqua ammonia']
+    # fluids = ['castor_oil', 'linseed oil', 'aqua ammonia']
+    fluids = ['Propane', 'R134a', 'R600a', 'R407c']
     fluids_values = {
 
     }
@@ -148,11 +149,7 @@ if __name__ == '__main__':
         fluid_value = get_values()
         fluids_values[fluid] = fluid_value
 
-    print('Plotting reynold number against diameter for castor oil')
-
-    castor_oil_details = fluids_values['castor_oil']
-    castor_oil_reynolds_number = castor_oil_details['reynolds_number']
-
+    print('Plotting graphs >>>>>>>>>>>> Loading >>>>>>>>>>>>>>>>>>>')
     # plot_graph(y=castor_oil_reynolds_number, x=DIAMETERS, x_axis_label='Diameter', y_axis_label='Reynolds Number',
     #            plot_title='Plot of The Reynolds Number against the Diameter')
 
@@ -168,27 +165,31 @@ if __name__ == '__main__':
         y_axis = graph_detail[0]
         x_axis = graph_detail[1]
 
-        castor_oil_y_values = fluids_values['castor_oil'][y_axis]
-        castor_oil_x_values = fluids_values['castor_oil'][x_axis]
+        fluid_one_y_values = fluids_values[fluids[0]][y_axis]
+        fluid_one_x_values = fluids_values[fluids[0]][x_axis]
 
-        linseed_oil_y_values = fluids_values['linseed oil'][y_axis]
-        linseed_oil_x_values = fluids_values['linseed oil'][x_axis]
+        fluid_two_y_values = fluids_values[fluids[1]][y_axis]
+        fluid_two_x_values = fluids_values[fluids[1]][x_axis]
 
-        sea_water_y_value = fluids_values['sea water'][y_axis]
-        sea_water_x_value = fluids_values['sea water'][x_axis]
+        fluid_three_y_values = fluids_values[fluids[2]][y_axis]
+        fluid_three_x_values = fluids_values[fluids[2]][x_axis]
 
-        aqua_ammonia_y_value = fluids_values['aqua ammonia'][y_axis]
-        aqua_ammonia_x_value = fluids_values['aqua ammonia'][x_axis]
+        fluid_four_y_values = fluids_values[fluids[3]][y_axis]
+        fluid_four_x_value = fluids_values[fluids[3]][x_axis]
 
-        x_values = [castor_oil_x_values, linseed_oil_x_values, sea_water_x_value, aqua_ammonia_x_value]
-        y_values = [castor_oil_y_values, linseed_oil_y_values, sea_water_y_value, aqua_ammonia_y_value]
+        x_values = [fluid_one_x_values, fluid_two_x_values, fluid_three_x_values, fluid_four_x_value]
+        y_values = [fluid_one_y_values, fluid_two_y_values, fluid_three_y_values, fluid_four_y_values]
 
-        for specific_graph_number in range(4):
+        # x_values = [castor_oil_x_values, linseed_oil_x_values, aqua_ammonia_x_value]
+        # y_values = [castor_oil_y_values, linseed_oil_y_values, aqua_ammonia_y_value]
+
+        for specific_graph_number in range(len(fluids)):
             plt.plot(x_values[specific_graph_number], y_values[specific_graph_number],
                      color=colors[specific_graph_number])
 
         plt.xlabel(x_axis)
         plt.ylabel(y_axis)
         plt.title(f'graph of {y_axis} against {x_axis}')
-        plt.legend(['Castor Oil', 'Linseed Oil', 'Sea Water', 'Aqua Ammonia'])
+        plt.legend(fluids)
+        # plt.legend(['Castor Oil', 'Linseed Oil','Aqua Ammonia'])
         plt.show()
