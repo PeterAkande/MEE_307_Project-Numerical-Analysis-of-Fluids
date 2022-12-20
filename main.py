@@ -139,10 +139,22 @@ if __name__ == '__main__':
     # Run some code
 
     # fluids = ['castor_oil', 'linseed oil', 'aqua ammonia']
-    fluids = ['Propane', 'R134a', 'R600a', 'R407c']
-    fluids_values = {
+    fluids = []
+    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w']
+    print('Enter fluid names. Press enter to stop recording')
+    while True:
 
-    }
+        fluid_name = input('Enter fluid name: ')
+
+        if len(fluid_name) == 0:
+            # Enter has been entered twice
+            break
+
+        fluids.append(fluid_name)
+
+    print(f'Calculating for {",".join(fluids)}')
+
+    fluids_values = {}
 
     for fluid in fluids:
         print(f'<------------Calculating for {fluid}-------------->')
@@ -157,34 +169,35 @@ if __name__ == '__main__':
                       ['pressure_loss', 'reynolds_number'], ['reynolds_number', 'diameter'],
                       ['reynolds_number', 'velocity']]
 
-    colors = ['r', 'g', 'b', 'c']
-
     for row in range(len(graphs_details)):
 
         graph_detail = graphs_details[row]
         y_axis = graph_detail[0]
         x_axis = graph_detail[1]
 
-        fluid_one_y_values = fluids_values[fluids[0]][y_axis]
-        fluid_one_x_values = fluids_values[fluids[0]][x_axis]
-
-        fluid_two_y_values = fluids_values[fluids[1]][y_axis]
-        fluid_two_x_values = fluids_values[fluids[1]][x_axis]
-
-        fluid_three_y_values = fluids_values[fluids[2]][y_axis]
-        fluid_three_x_values = fluids_values[fluids[2]][x_axis]
-
-        fluid_four_y_values = fluids_values[fluids[3]][y_axis]
-        fluid_four_x_value = fluids_values[fluids[3]][x_axis]
-
-        x_values = [fluid_one_x_values, fluid_two_x_values, fluid_three_x_values, fluid_four_x_value]
-        y_values = [fluid_one_y_values, fluid_two_y_values, fluid_three_y_values, fluid_four_y_values]
+        #
+        # fluid_one_y_values = fluids_values[fluids[0]][y_axis]
+        # fluid_one_x_values = fluids_values[fluids[0]][x_axis]
+        #
+        # fluid_two_y_values = fluids_values[fluids[1]][y_axis]
+        # fluid_two_x_values = fluids_values[fluids[1]][x_axis]
+        #
+        # fluid_three_y_values = fluids_values[fluids[2]][y_axis]
+        # fluid_three_x_values = fluids_values[fluids[2]][x_axis]
+        #
+        # fluid_four_y_values = fluids_values[fluids[3]][y_axis]
+        # fluid_four_x_value = fluids_values[fluids[3]][x_axis]
+        #
+        # x_values = [fluid_one_x_values, fluid_two_x_values, fluid_three_x_values, fluid_four_x_value]
+        # y_values = [fluid_one_y_values, fluid_two_y_values, fluid_three_y_values, fluid_four_y_values]
 
         # x_values = [castor_oil_x_values, linseed_oil_x_values, aqua_ammonia_x_value]
         # y_values = [castor_oil_y_values, linseed_oil_y_values, aqua_ammonia_y_value]
 
         for specific_graph_number in range(len(fluids)):
-            plt.plot(x_values[specific_graph_number], y_values[specific_graph_number],
+            # Plot all the graphs on a canvas
+            plt.plot(fluids_values[fluids[specific_graph_number]][x_axis],
+                     fluids_values[fluids[specific_graph_number]][y_axis],
                      color=colors[specific_graph_number])
 
         plt.xlabel(x_axis)
