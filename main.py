@@ -135,12 +135,22 @@ def add_subplot_graph(axis, row: int, col: int, x: list, y: list, x_axis_label: 
     axis.ylabel(y_axis_label)
 
 
+def create_excel_sheet(fluids_values_dict: dict):
+    # This would create an excel file from a dictionary.
+    # It is kind of hard coded in this case.
+    # It would create multiple excel sheets for each fluids.
+
+    assert(len(fluids_values_dict) > 0)
+    pass
+
+
+
 if __name__ == '__main__':
     # Run some code
 
     # fluids = ['castor_oil', 'linseed oil', 'aqua ammonia']
     fluids = []
-    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w']
+    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'chartreuse', 'burlywood']
     print('Enter fluid names. Press enter to stop recording')
     while True:
 
