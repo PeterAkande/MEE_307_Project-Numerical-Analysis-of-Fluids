@@ -4,13 +4,17 @@ import os.path
 import matplotlib.pyplot as plt
 import openpyxl
 
-ENV_TYPE = 'horizontal'
-ACCELERATION_DUE_GRAVITY = 0.01
+ENV_TYPE = 'vertical'
+ACCELERATION_DUE_GRAVITY = 9.81
 VELOCITY = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
 DIAMETERS = [0.00159, 0.00318, 0.00477, 0.00636, 0.00795, 0.00954, 0.01113, 0.01272, 0.01431, 0.0159]
 LENGTHS = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
 PIPE_ROUGHNESS = 0.03
 THERMAL_CONDUCTIVITY = 401
+GRAPH_DETAILS = [['head_loss', 'reynolds_number'], ['heat_transfer_coefficient', 'reynolds_number'],
+                 ['frictional_factor', 'reynolds_number']]
+
+FLUIDS = ['R407a', 'R245fa', 'R1234ze', 'R1234yf', 'Water', 'Ammonia', 'R134a', 'Propane', 'R600a', 'R407c']
 
 
 def calculate_reynolds_number(density: float, diameter: float, velocity: float, dynamic_viscosity: float) -> float:
@@ -157,8 +161,8 @@ def create_excel_sheet(fluids_values_dict: dict, fluid_name: str):
     """
     assert (len(fluids_values_dict) > 0)
 
-    cwd = os.getcwd()  # Get the current working directory
-    path_to_file = os.path.join(cwd, 'generated', 'excel_sheets', ENV_TYPE, f"{fluid_name}_{ENV_TYPE}.xlsx")
+    _cwd = os.getcwd()  # Get the current working directory
+    _path_to_file = os.path.join(_cwd, 'generated', 'excel_sheets', ENV_TYPE, f"{fluid_name}_{ENV_TYPE}.xlsx")
 
     wb = openpyxl.Workbook()  # Create a workbook
     sheet = wb.active
@@ -190,55 +194,54 @@ def create_excel_sheet(fluids_values_dict: dict, fluid_name: str):
             cell = sheet.cell(row=_row + 2, column=column + 1)
             cell.value = value
 
-    wb.save(filename=path_to_file)
+    wb.save(filename=_path_to_file)
 
 
 if __name__ == '__main__':
     # Run some code
 
-    fluids = ['R407a', 'R245fa', 'R1234ze', 'R1234yf', 'Water', 'Ammonia', 'R134a', 'Propane', 'R600a', 'R407c']
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'pink', 'chartreuse', 'burlywood']
     print('Enter fluid names. Press enter to stop recording')
 
-    print(f'Calculating for {",".join(fluids)}')
+    print(f'Calculating for {",".join(FLUIDS)}')
     fluids_values = {
-        fluids[0]: {
+        FLUIDS[0]: {
             'shc': 1520,
             'density': 1145.1,
             'viscosity': 0.000151
-        }, fluids[1]: {
+        }, FLUIDS[1]: {
             'shc': 1322,
             'density': 1339,
             'viscosity': 0.000401
-        }, fluids[2]: {
+        }, FLUIDS[2]: {
             'shc': 1386,
             'density': 1163.1,
             'viscosity': 0.000199
-        }, fluids[3]: {
+        }, FLUIDS[3]: {
             'shc': 1392,
             'density': 1092,
             'viscosity': 0.000154
-        }, fluids[4]: {
+        }, FLUIDS[4]: {
             'shc': 4187,
             'density': 1000,
             'viscosity': 0.000895
-        }, fluids[5]: {
+        }, FLUIDS[5]: {
             'shc': 4744,
             'density': 696,
             'viscosity': 0.000255
-        }, fluids[6]: {
+        }, FLUIDS[6]: {
             'shc': 1430,
             'density': 1207.2,
             'viscosity': 0.000181
-        }, fluids[7]: {
+        }, FLUIDS[7]: {
             'shc': 1630,
             'density': 495,
             'viscosity': 0.00011
-        }, fluids[8]: {
+        }, FLUIDS[8]: {
             'shc': 2430,
             'density': 551,
             'viscosity': 0.000151
-        }, fluids[9]: {
+        }, FLUIDS[9]: {
             'shc': 1540,
             'density': 1134,
             'viscosity': 0.000154
@@ -247,38 +250,36 @@ if __name__ == '__main__':
 
     fluids_tables = {}
 
-    for fluid in fluids:
+    for fluid in FLUIDS:
         print(f'<------------Calculating for {fluid}-------------->')
         fluid_value = get_values(fluids_values[fluid]['shc'], fluids_values[fluid]['viscosity'],
                                  fluids_values[fluid]['density'], )
         fluids_tables[fluid] = fluid_value
-        create_excel_sheet(fluid_value, fluid)
+        # create_excel_sheet(fluid_value, fluid)
 
     print('Plotting graphs >>>>>>>>>>>> Loading >>>>>>>>>>>>>>>>>>>')
 
-    graphs_details = [['head_loss', 'reynolds_number'], ['heat_transfer_coefficient', 'reynolds_number'],
-                      ['frictional_factor', 'reynolds_number'], ['reynolds_number', 'diameter'],
-                      ['reynolds_number', 'velocity']]
+    for row in range(len(GRAPH_DETAILS)):
 
-    for row in range(len(graphs_details)):
-
-        graph_detail = graphs_details[row]
+        graph_detail = GRAPH_DETAILS[row]
         y_axis = graph_detail[0]
         x_axis = graph_detail[1]
 
-        for specific_graph_number in range(len(fluids)):
+        plt.clf()
+
+        for specific_graph_number in range(len(FLUIDS)):
             # Plot all the graphs on a canvas
-            plt.plot(fluids_tables[fluids[specific_graph_number]][x_axis],
-                     fluids_tables[fluids[specific_graph_number]][y_axis],
+            plt.plot(fluids_tables[FLUIDS[specific_graph_number]][x_axis],
+                     fluids_tables[FLUIDS[specific_graph_number]][y_axis],
                      color=colors[specific_graph_number])
 
         plt.xlabel(x_axis)
         plt.ylabel(y_axis)
         plt.title(f'graph of {y_axis} against {x_axis}')
-        plt.legend(fluids)
+        plt.legend(FLUIDS)
 
         cwd = os.getcwd()
         path_to_file = os.path.join(cwd, 'generated', 'images', ENV_TYPE, f'{y_axis} against {x_axis}_{ENV_TYPE}.png')
 
         plt.savefig(path_to_file)
-        # plt.show() # Plot the graph and show a window
+        plt.show()  # Plot the graph and show a window
