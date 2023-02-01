@@ -9,26 +9,26 @@ from matplotlib.figure import Figure
 # from PyQt5.QtCore import QSize, Qt
 # from PyQt5.QtGui import QPalette, QColor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, \
-    QDoubleSpinBox, QGridLayout, QStackedLayout
+    QDoubleSpinBox, QGridLayout, QStackedLayout, QCheckBox
 
 from test import get_values, GRAPH_DETAILS, FLUIDS
 
 
-class CustomEditText(QDoubleSpinBox):
-    def __init__(self, fluid_data, value_type):
-        self.fluid_data = fluid_data
-        self.type = value_type
+def get_formatted_name_for_graph(word: str) -> str:
+    word = word.replace('_', ' ')
 
-        super().__init__()
-    #
-    # def valueChanged(self, d, *args, **kwargs):
-    #     if type == 'd':
-    #         self.fluid_data.density = d
-    #     elif type == 's':
-    #         self.fluid_data.shc = d
-    #     else:
-    #         self.fluid_data.viscosity = d
-    #     super().valueChanged(args, kwargs)
+    return word.capitalize()
+
+
+def get_quantity_unit(quantity: str) -> str:
+    if quantity == 'heat_transfer_coefficient':
+        return '(W/m2/K)'
+    elif quantity == 'head_loss':
+        return '(m)'
+    else:
+        # Frictional Factor and Reynolds number are dimensionless
+        return ''
+    pass
 
 
 class FluidData:
@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.datas = []  # This would contain the data needed to draw the graphs
+        self.current_index_for_graph = 0
 
         fluids_values_v_layout = QGridLayout()
         axis_h_layout = QHBoxLayout()
@@ -77,17 +78,32 @@ class MainWindow(QMainWindow):
         btn.clicked.connect(self.plot_graphs)
         fluids_values_v_layout.addWidget(btn)
 
+        # Is horizontal view check #
+        is_horizontal_view_check_layout = QHBoxLayout()
+        self.is_horizontal_check = QCheckBox()
+
+        self.is_horizontal_check.clicked.connect(lambda check_state: self.plot_graphs())
+        is_horizontal_label = QLabel('Horizontal')
+
+        is_horizontal_view_check_layout.addWidget(self.is_horizontal_check)
+        is_horizontal_view_check_layout.addWidget(is_horizontal_label)
+
+        is_horizontal_view_check_widget = QWidget()
+        is_horizontal_view_check_widget.setLayout(is_horizontal_view_check_layout)
+
+        fluids_values_v_layout.addWidget(is_horizontal_view_check_widget)
+
         # Add the contents of axis_h_layout
         # It would contain the buttons that would control the graoh that is being shown
 
         # Add he buttons
-        f_against_reynold = QPushButton('F against Re')
-        head_loss_against_reynold = QPushButton('Headloss against Re')
-        heat_coefficient_against_reynold = QPushButton('SHC against Re')
+        f_against_reynold = QPushButton('Frictional Factor against Reynold Number')
+        head_loss_against_reynold = QPushButton('Head loss against Reynold Number')
+        heat_coefficient_against_reynold = QPushButton('Heat transfer Coefficient against Reynold Number')
 
-        f_against_reynold.clicked.connect(lambda d: self.graph_plot_layout.setCurrentIndex(2))
-        head_loss_against_reynold.clicked.connect(lambda d: self.graph_plot_layout.setCurrentIndex(0))
-        heat_coefficient_against_reynold.clicked.connect(lambda d: self.graph_plot_layout.setCurrentIndex(1))
+        f_against_reynold.clicked.connect(lambda d: self.set_current_index_for_plot(2))
+        head_loss_against_reynold.clicked.connect(lambda d: self.set_current_index_for_plot(0))
+        heat_coefficient_against_reynold.clicked.connect(lambda d: self.set_current_index_for_plot(1))
 
         axis_h_layout.addWidget(head_loss_against_reynold)
         axis_h_layout.addWidget(heat_coefficient_against_reynold)
@@ -102,13 +118,6 @@ class MainWindow(QMainWindow):
 
         self.info_label = QLabel('Please Enter values and Click on the calculate values button')
         self.graph_plot_layout.addWidget(self.info_label)
-        # self.graph_plot_layout.addWidget(self.headloss_against_reynolds_plot)
-        # self.graph_plot_layout.addWidget(self.shc_against_reynolds_plot)
-
-        self.f_against_reynolds_plot.axes.plot([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
-
-        self.headloss_against_reynolds_plot.axes.plot([0, 14, 2, 4, 4], [10, 14, 20, 3, 404])
-        self.shc_against_reynolds_plot.axes.plot([0, 19, 2, 3, 49], [10, 1, 20, 3, 409])
 
         # The
         right_side_v_layout = QVBoxLayout()  # This would occupy both the buttons to change graphs and the graph
@@ -143,7 +152,8 @@ class MainWindow(QMainWindow):
         d_label = QLabel('Density')
         d_edit_field = QDoubleSpinBox()
         d_edit_field.setMaximum(100000000000000000000000)
-        d_edit_field.setDecimals(10)
+        d_edit_field.setDecimals(8)
+        d_edit_field.setSuffix('  kg/m3')
         d_edit_field.valueChanged.connect(lambda d: self.edit_fluid_data(fluid_data, 'd', d))
         d_each_entry_layout.addWidget(d_label)
         d_each_entry_layout.addWidget(d_edit_field)
@@ -153,7 +163,8 @@ class MainWindow(QMainWindow):
         v_label = QLabel('Viscosity')
         v_edit_field = QDoubleSpinBox()
         v_edit_field.setMaximum(100000000000000000000000)
-        v_edit_field.setDecimals(10)
+        v_edit_field.setDecimals(8)
+        v_edit_field.setSuffix('  Pa.s')
         v_edit_field.valueChanged.connect(lambda d: self.edit_fluid_data(fluid_data, 'v', d))
         v_each_entry_layout.addWidget(v_label)
         v_each_entry_layout.addWidget(v_edit_field)
@@ -164,7 +175,8 @@ class MainWindow(QMainWindow):
         s_label = QLabel('SHC')
         s_edit_field = QDoubleSpinBox()
         s_edit_field.setMaximum(100000000000000000000000)
-        s_edit_field.setDecimals(10)
+        s_edit_field.setDecimals(8)
+        s_edit_field.setSuffix('  J/kg.K')
         s_edit_field.valueChanged.connect(lambda d: self.edit_fluid_data(fluid_data, 's', d))
         s_each_entry_layout.addWidget(s_label)
         s_each_entry_layout.addWidget(s_edit_field)
@@ -178,19 +190,19 @@ class MainWindow(QMainWindow):
 
         return container
 
-    def edit_fluid_data(self, fluid_data, type, d):
+    def edit_fluid_data(self, fluid_data, quantity_type_first_letter, d):
 
-        if type == 'd':
-
+        if quantity_type_first_letter == 'd':
             fluid_data.density = d
-        elif type == 's':
+        elif quantity_type_first_letter == 's':
             fluid_data.shc = d
-
         else:
             fluid_data.viscosity = d
 
-    def get_plots(self):
-        pass
+    def set_current_index_for_plot(self, index: int):
+        self.graph_plot_layout.setCurrentIndex(index)
+
+        self.current_index_for_graph = index
 
     def get_valid_fluid_data(self) -> (list, list):
         # This would return the valid data and those data would be used to plot the graph
@@ -221,7 +233,7 @@ class MainWindow(QMainWindow):
 
         for fluid in fluids_data:
             fluid_value = get_values(fluid.shc, fluid.viscosity,
-                                     fluid.density)
+                                     fluid.density, self.get_acceleration_due_to_gravity())
             fluids_tables[fluid.name] = fluid_value
 
         for row in range(len(GRAPH_DETAILS)):
@@ -238,7 +250,6 @@ class MainWindow(QMainWindow):
                 self.shc_against_reynolds_plot.setParent(None)
                 plt = self.shc_against_reynolds_plot = MplCanvas(self, width=5, height=4, dpi=100)
 
-
             else:
                 self.f_against_reynolds_plot.setParent(None)
                 plt = self.f_against_reynolds_plot = MplCanvas(self, width=5, height=4, dpi=100)
@@ -252,12 +263,23 @@ class MainWindow(QMainWindow):
                               fluids_tables[fluids_data[specific_graph_number].name][y_axis],
                               color=colors[specific_graph_number])
 
-            plt.axes.set_xlabel(x_axis)
-            plt.axes.set_ylabel(y_axis)
-            plt.axes.set_title(f'graph of {y_axis} against {x_axis}')
+            plt.axes.set_xlabel(f'{get_formatted_name_for_graph(x_axis)} {get_quantity_unit(x_axis)}')
+            plt.axes.set_ylabel(f'{get_formatted_name_for_graph(y_axis)} {get_quantity_unit(y_axis)}')
+            plt.axes.set_title(
+                f'Graph of {get_formatted_name_for_graph(y_axis)} against {get_formatted_name_for_graph(x_axis)}')
             plt.fig.legend(fluids_names)
 
             self.graph_plot_layout.addWidget(plt)
+        self.graph_plot_layout.setCurrentIndex(self.current_index_for_graph)
+
+    def get_acceleration_due_to_gravity(self) -> float:
+        """
+        :return: This would return the acceleration due to gravity
+        """
+
+        if self.is_horizontal_check.isChecked():
+            return 0.01
+        return 9.81
 
 
 app = QApplication(sys.argv)

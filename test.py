@@ -46,8 +46,8 @@ def get_frictional_factor(reynold_number: float, pipe_roughness: float, is_lamin
     return frictional_factor
 
 
-def calculate_head_loss(friction_factor: float, pipe_length: float, diameter: float, velocity: float):
-    head_loss = (friction_factor * pipe_length * velocity ** 2) / (diameter * 2 * ACCELERATION_DUE_GRAVITY)
+def calculate_head_loss(friction_factor: float, pipe_length: float, diameter: float, velocity: float, g: float):
+    head_loss = (friction_factor * pipe_length * velocity ** 2) / (diameter * 2 * g)
     return head_loss
 
 
@@ -57,8 +57,8 @@ def calculate_prandtl_number(dynamic_viscosity: float, specific_heat_capacity: f
     return prandtl_number
 
 
-def calculate_pressure(density: float, head_loss: float) -> float:
-    return -density * ACCELERATION_DUE_GRAVITY * head_loss
+def calculate_pressure(density: float, head_loss: float, g: float) -> float:
+    return -density * g * head_loss
 
 
 def calculate_coefficient_of_heat_transfer(reynold_number: float, diameter: float, prandtl_number: float,
@@ -66,7 +66,7 @@ def calculate_coefficient_of_heat_transfer(reynold_number: float, diameter: floa
     return 0.023 * (reynold_number ** 0.8) * (prandtl_number ** 0.4) * conductivity / diameter
 
 
-def get_values(specific_heat_capacity: float, dynamic_viscosity: float, density: float) -> dict:
+def get_values(specific_heat_capacity: float, dynamic_viscosity: float, density: float, g: float) -> dict:
     # This function gets the various values and does the operation for each fluid
 
     reynolds_number_values = []  # This list would store the reynold number for the fluid in what ever case
@@ -98,10 +98,10 @@ def get_values(specific_heat_capacity: float, dynamic_viscosity: float, density:
 
         # Get the head loss
         head_loss = calculate_head_loss(friction_factor=frictional_factor, pipe_length=length, diameter=diameter,
-                                        velocity=velocity)
+                                        velocity=velocity, g=g)
 
         # Get the pressure
-        pressure = calculate_pressure(density=density, head_loss=head_loss)
+        pressure = calculate_pressure(density=density, head_loss=head_loss, g=g)
 
         # Get the coefficient of heat transfer.
         coefficient_of_heat_transfer = calculate_coefficient_of_heat_transfer(reynold_number=reynold_number,
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     for fluid in FLUIDS:
         print(f'<------------Calculating for {fluid}-------------->')
         fluid_value = get_values(fluids_values[fluid]['shc'], fluids_values[fluid]['viscosity'],
-                                 fluids_values[fluid]['density'], )
+                                 fluids_values[fluid]['density'], ACCELERATION_DUE_GRAVITY)
         fluids_tables[fluid] = fluid_value
         # create_excel_sheet(fluid_value, fluid)
 
@@ -281,5 +281,5 @@ if __name__ == '__main__':
         cwd = os.getcwd()
         path_to_file = os.path.join(cwd, 'generated', 'images', ENV_TYPE, f'{y_axis} against {x_axis}_{ENV_TYPE}.png')
 
-        plt.savefig(path_to_file)
+        # plt.savefig(path_to_file)
         plt.show()  # Plot the graph and show a window
