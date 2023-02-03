@@ -9,9 +9,9 @@ from matplotlib.figure import Figure
 # from PyQt5.QtCore import QSize, Qt
 # from PyQt5.QtGui import QPalette, QColor
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, \
-    QDoubleSpinBox, QGridLayout, QStackedLayout, QCheckBox
+    QDoubleSpinBox, QGridLayout, QStackedLayout, QCheckBox, QFileDialog
 
-from test import get_values, GRAPH_DETAILS, FLUIDS
+from test import get_values, GRAPH_DETAILS, FLUIDS, create_excel_sheet
 
 
 def get_formatted_name_for_graph(word: str) -> str:
@@ -56,6 +56,8 @@ class MainWindow(QMainWindow):
         self.datas = []  # This would contain the data needed to draw the graphs
         self.current_index_for_graph = 0
 
+        self.setWindowTitle('MEE 307 Graph Calculator by MEE23')
+
         fluids_values_v_layout = QGridLayout()
         axis_h_layout = QHBoxLayout()
         self.graph_plot_layout = QStackedLayout()  # Can be a stacked layout
@@ -74,9 +76,9 @@ class MainWindow(QMainWindow):
 
                 index += 1
 
-        btn = QPushButton('Calculate values')
-        btn.clicked.connect(self.plot_graphs)
-        fluids_values_v_layout.addWidget(btn)
+        calculate_graph_btn = QPushButton('Plot Graph')
+        calculate_graph_btn.clicked.connect(self.plot_graphs)
+        fluids_values_v_layout.addWidget(calculate_graph_btn)
 
         # Is horizontal view check #
         is_horizontal_view_check_layout = QHBoxLayout()
@@ -92,6 +94,10 @@ class MainWindow(QMainWindow):
         is_horizontal_view_check_widget.setLayout(is_horizontal_view_check_layout)
 
         fluids_values_v_layout.addWidget(is_horizontal_view_check_widget)
+
+        save_excel_sheets_btn = QPushButton('Save Excel Sheet')
+        save_excel_sheets_btn.clicked.connect(self.open_dialog_and_get_directory_to_save_files)
+        fluids_values_v_layout.addWidget(save_excel_sheets_btn)
 
         # Add the contents of axis_h_layout
         # It would contain the buttons that would control the graoh that is being shown
@@ -190,6 +196,14 @@ class MainWindow(QMainWindow):
 
         return container
 
+    def open_dialog_and_get_directory_to_save_files(self):
+        dlg = QFileDialog()
+        dlg.setFileMode(QFileDialog.Directory)
+
+        if dlg.exec_():
+            dir_to_save_files = dlg.selectedFiles()[0]
+            self.save_excel_sheet(dir_to_save_files)
+
     def edit_fluid_data(self, fluid_data, quantity_type_first_letter, d):
 
         if quantity_type_first_letter == 'd':
@@ -280,6 +294,27 @@ class MainWindow(QMainWindow):
         if self.is_horizontal_check.isChecked():
             return 0.01
         return 9.81
+
+    def get_env_type(self):
+        if self.is_horizontal_check.isChecked():
+            return 'horizontal'
+
+        return 'vertical'
+
+    def save_excel_sheet(self, directory: str):
+
+        env_type = self.get_env_type()
+        fluids_data, fluids_names = self.get_valid_fluid_data()
+
+        if len(fluids_data) == 0:
+            return
+
+        for fluid in fluids_data:
+            fluid_value = get_values(fluid.shc, fluid.viscosity,
+                                     fluid.density, self.get_acceleration_due_to_gravity())
+
+            create_excel_sheet(fluid_value, fluid.name, env_type=env_type, directory=directory)
+
 
 
 app = QApplication(sys.argv)
