@@ -2,6 +2,7 @@ import math
 import os.path
 
 import matplotlib.pyplot as plt
+
 import openpyxl
 
 ENV_TYPE = 'vertical'
@@ -143,7 +144,7 @@ def add_subplot_graph(axis, row: int, col: int, x: list, y: list, x_axis_label: 
     axis.ylabel(y_axis_label)
 
 
-def create_excel_sheet(fluids_values_dict: dict, fluid_name: str):
+def create_excel_sheet(fluids_values_dict: dict, fluid_name: str, env_type: str, directory: str = ''):
     """
     This would create an excel file from a dictionary.
     It is kind of hard coded in this case.
@@ -161,8 +162,18 @@ def create_excel_sheet(fluids_values_dict: dict, fluid_name: str):
     """
     assert (len(fluids_values_dict) > 0)
 
-    _cwd = os.getcwd()  # Get the current working directory
-    _path_to_file = os.path.join(_cwd, 'generated', 'excel_sheets', ENV_TYPE, f"{fluid_name}_{ENV_TYPE}.xlsx")
+    if len(directory) == 0:
+        _cwd = os.getcwd()  # Get the current working directory
+    else:
+        _cwd = directory
+
+    directory_to_save_file = os.path.join(_cwd, 'generated', 'excel_sheets', env_type)
+
+    if not os.path.exists(directory_to_save_file):
+        os.makedirs(directory_to_save_file)
+
+    _path_to_file = os.path.join(directory_to_save_file, f"{fluid_name}_{env_type}.xlsx")
+
 
     wb = openpyxl.Workbook()  # Create a workbook
     sheet = wb.active
@@ -194,7 +205,12 @@ def create_excel_sheet(fluids_values_dict: dict, fluid_name: str):
             cell = sheet.cell(row=_row + 2, column=column + 1)
             cell.value = value
 
-    wb.save(filename=_path_to_file)
+    _path_to_file = _path_to_file.replace('/', '\\')
+
+    try:
+        wb.save(filename=_path_to_file)
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
@@ -255,7 +271,7 @@ if __name__ == '__main__':
         fluid_value = get_values(fluids_values[fluid]['shc'], fluids_values[fluid]['viscosity'],
                                  fluids_values[fluid]['density'], ACCELERATION_DUE_GRAVITY)
         fluids_tables[fluid] = fluid_value
-        # create_excel_sheet(fluid_value, fluid)
+        create_excel_sheet(fluid_value, fluid, env_type=ENV_TYPE)
 
     print('Plotting graphs >>>>>>>>>>>> Loading >>>>>>>>>>>>>>>>>>>')
 
@@ -279,7 +295,7 @@ if __name__ == '__main__':
         plt.legend(FLUIDS)
 
         cwd = os.getcwd()
-        path_to_file = os.path.join(cwd, 'generated', 'images', ENV_TYPE, f'{y_axis} against {x_axis}_{ENV_TYPE}.png')
+        path_to_file = os.path.join(cwd, 'generated', 'desktop_app_images', ENV_TYPE, f'{y_axis} against {x_axis}_{ENV_TYPE}.png')
 
         # plt.savefig(path_to_file)
         plt.show()  # Plot the graph and show a window
