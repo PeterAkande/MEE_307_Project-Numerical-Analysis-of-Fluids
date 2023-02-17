@@ -5,10 +5,11 @@
 
 #### The Windows application was build with PYQT
 
-####View
+### View
+
+https://user-images.githubusercontent.com/64542587/219817200-8bc976d9-54d1-4275-9385-c80f372f0513.mp4
 
 
-https://user-images.githubusercontent.com/64542587/219816792-01e6e2bc-2869-4fa7-aea8-df9f2f6755f4.mp4
 
 
 ### So we are on the same page...
